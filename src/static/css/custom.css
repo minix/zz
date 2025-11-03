@@ -1,0 +1,50 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+html {
+  color-scheme: light dark;
+}
+
+body {
+  font-family: system-ui;
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+  display: block;
+}
+
+main {
+  max-width: min(70ch, 100% - 4rem);
+  margin-inline: auto;
+}
+
+a {
+  color: #005a9c;
+}
+
+nav {
+  flex-wrap: nowrap;
+  position: relative;
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3em;
+}
+
+nav > ul {
+    display: flex;
+    position: static;
+    list-style: none;
+}
+nav > ul li {
+    margin-right: 10px;
+}

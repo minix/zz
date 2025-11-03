@@ -1,5 +1,5 @@
 const std = @import("std");
-const log = std.log.scoped(.@"examples/basic");
+const log = std.log.scoped(.@"examples/form");
 
 const zzz = @import("zzz");
 const http = zzz.HTTP;
@@ -13,13 +13,58 @@ const Server = http.Server;
 const Router = http.Router;
 const Context = http.Context;
 const Route = http.Route;
+const Form = http.Form;
+const Query = http.Query;
 const Respond = http.Respond;
+const Dir = tardy.Dir;
+const FsDir = http.FsDir;
 
 fn base_handler(ctx: *const Context, _: void) !Respond {
+    const body =
+        \\<form>
+        \\    <label for="fname">First name:</label>
+        \\    <input type="text" id="fname" name="fname"><br><br>
+        \\    <label for="lname">Last name:</label>
+        \\    <input type="text" id="lname" name="lname"><br><br>
+        \\    <label for="age">Age:</label>
+        \\    <input type="text" id="age" name="age"><br><br>
+        \\    <label for="height">Height:</label>
+        \\    <input type="text" id="height" name="height"><br><br>
+        \\    <button formaction="/generate" formmethod="get">GET Submit</button>
+        \\    <button formaction="/generate" formmethod="post">POST Submit</button>
+        \\</form> 
+    ;
+
     return ctx.response.apply(.{
         .status = .OK,
         .mime = http.Mime.HTML,
-        .body = "Hello, world!",
+        .body = body,
+    });
+}
+
+const UserInfo = struct {
+    name: []const u8,
+};
+
+fn generate_handler(ctx: *const Context, _: void) !Respond {
+    const info = switch (ctx.request.method.?) {
+        .GET => try Query(UserInfo).parse(ctx.allocator, ctx),
+        .POST => try Form(UserInfo).parse(ctx.allocator, ctx),
+        else => return error.UnexpectedMethod,
+    };
+
+    const body = try std.fmt.allocPrint(
+        ctx.allocator,
+        "<li>{s}</li>",
+        .{
+            info.name
+        },
+    );
+
+    return ctx.response.apply(.{
+        .status = .OK,
+        .mime = http.Mime.TEXT,
+        .body = body,
     });
 }
 
@@ -33,13 +78,17 @@ pub fn main() !void {
 
     var t = try Tardy.init(allocator, .{ .threading = .auto });
     defer t.deinit();
+    
+    const static_dir = Dir.from_std(try std.fs.cwd().openDir("src/static", .{}));
 
     var router = try Router.init(allocator, &.{
         Route.init("/").get({}, base_handler).layer(),
+        Route.init("/index.html").get({}, base_handler).layer(),
+        Route.init("/ep").get({}, generate_handler).post({}, generate_handler).layer(),
+        FsDir.serve("/", static_dir),
     }, .{});
     defer router.deinit(allocator);
 
-    // create socket for tardy
     var socket = try Socket.init(.{ .tcp = .{ .host = host, .port = port } });
     defer socket.close_blocking();
     try socket.bind();
@@ -57,8 +106,6 @@ pub fn main() !void {
                 var server = Server.init(.{
                     .stack_size = 1024 * 1024 * 4,
                     .socket_buffer_bytes = 1024 * 2,
-                    .keepalive_count_max = null,
-                    .connection_count_max = 1024,
                 });
                 try server.serve(rt, p.router, .{ .normal = p.socket });
             }

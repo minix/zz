@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>login</title>
+    <link rel="stylesheet" type="text/css" href="/css/custom.css" media="screen" /> 
+    <script src="/js/htmx.min.js"></script>
+</head>
+  <body>
+<form hx-post="/ep"
+      hx-target="#notes" 
+      hx-swap="afterbegin"
+      hx-on::after-request="if(event.detail.successful) this.reset()">
+    <label>Add a note</label>
+    <input type="text" name="name" placeholder="blank canvas">
+    <button class="btn">Add</button>
+</form>
+<ul id="notes"></ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE Example</title>
+    <link rel="stylesheet" type="text/css" href="/css/custom.css" media="screen" /> 
+    <script crossorigin="anonymous" type="module" src="/js/datastar.js"></script>
+    <script src="/js/htmx.min.js"></script>
+</head>
+<body>
+	    <div id="display-content">
+	    </div>
+	
+	<form hx-get="/ep" hx-target="#display-content" hx-swap="innerHTML">
+	    <div>
+	        <label for="name">输入内容:</label>
+	        <input type="text" id="name" name="name" placeholder="请输入任意内容..." required>
+	    </div>
+	    <button type="submit">提交</button>
+	</form>
+</body>
+</html>
